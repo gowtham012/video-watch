@@ -1,2 +1,0 @@
-{"ts": "2026-10-19T23:05:25.551118+00:00", "summary": "The render is slow: motion blur draws each blurred shot 6 times, and frosted glass is expensive in headless Chrome. It took over 10 minutes and is still running in the background. When it finishes, I'll watch the result with vw.py and fix whatever looks wrong."}
-{"ts": "2026-10-19T23:07:55.145805+00:00", "summary": "The final render is running in the background. When it finishes, I'll check the tagline exit and send you the video."}
