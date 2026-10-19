@@ -645,6 +645,47 @@ def cmd_frame(a):
     print(name)
 
 
+def cmd_colors(a):
+    """Measured palette: dominant colours + saturated accents, as hex with share of screen."""
+    m = load(a.dir)
+    dur = m["probe"]["duration"]
+    times = [parse_time(x) for x in a.at.split(",")] if a.at else [f["t"] for f in m["frames"]]
+    counts = {}
+    for t in times:
+        t = max(0.0, min(t, dur - 0.25))
+        p = run(["ffmpeg", "-v", "error", "-ss", f"{t:.3f}", "-i", m["video"], "-frames:v", "1",
+                 # neighbor, not area: no blending, so thin text keeps its true colour
+                 "-vf", "scale=320:180:flags=neighbor", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], check=False)
+        px = p.stdout or b""
+        for i in range(0, len(px) - 2, 3):
+            k = (px[i] >> 3 << 3, px[i + 1] >> 3 << 3, px[i + 2] >> 3 << 3)  # 32 levels per channel
+            counts[k] = counts.get(k, 0) + 1
+    total = sum(counts.values()) or 1
+    # ponytail: greedy merge of near colours (O(n*k)); fine for a few thousand buckets
+    merged = []
+    for c, n in sorted(counts.items(), key=lambda x: -x[1]):
+        for g in merged:
+            if sum((c[i] - g["c"][i]) ** 2 for i in range(3)) < 20 ** 2:
+                g["n"] += n
+                break
+        else:
+            merged.append({"c": c, "n": n})
+
+    def sat(c):
+        hi, lo = max(c), min(c)
+        return 0 if hi == 0 else (hi - lo) / hi
+
+    def fmt(g):
+        return {"hex": "#%02X%02X%02X" % tuple(min(255, v + 4) for v in g["c"]),
+                "share": f"{100 * g['n'] / total:.1f}%"}
+
+    merged.sort(key=lambda g: -g["n"])
+    dominant = [fmt(g) for g in merged[:a.n]]
+    accents = [fmt(g) for g in merged if sat(g["c"]) > 0.45 and max(g["c"]) > 80
+               and g["n"] / total > 0.0003][:a.n]  # small on screen, but they carry the brand
+    print(json.dumps({"frames_sampled": len(times), "dominant": dominant, "accents": accents}, indent=1))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sp = ap.add_subparsers(dest="cmd", required=True)
@@ -670,6 +711,10 @@ def main():
     f.add_argument("--dir", required=True); f.add_argument("--at", required=True)
     f.add_argument("--width", type=int, default=1920); f.add_argument("--crop")
     f.set_defaults(fn=cmd_frame)
+    c = sp.add_parser("colors", help="measured palette (hex) across keyframes or given times")
+    c.add_argument("--dir", required=True); c.add_argument("--at", help="comma-separated times; default: all keyframes")
+    c.add_argument("--n", type=int, default=8)
+    c.set_defaults(fn=cmd_colors)
     a = ap.parse_args()
     a.fn(a)
 

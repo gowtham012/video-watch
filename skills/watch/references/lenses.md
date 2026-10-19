@@ -41,3 +41,34 @@ Watch it as the target viewer scrolling a feed, then again as a creative directo
 - For "summarize": the gist line, then a 5–15 beat timeline, then key takeaways.
 - For counting or tracking questions ("how many times…", "when does X first appear"), keyframes are not enough. Zoom across the relevant windows at 2–4 fps and say what sampling you used.
 - For people: describe what is visible (clothing, actions, on-screen name captions). Don't identify real people from their faces. Use names only when given in captions, the title or speech.
+
+## Remake: same style, the user's content
+
+The goal is a production prompt that rebuilds the reference's *quality and feel* around the user's own product. Copy the style, never the content: no reference logos, footage, copy, characters or music.
+
+**1. Get the user's content first** (one `AskUserQuestion` round, or ask in chat). Ask for:
+- Product name, a one-line promise, and the 3–5 things to show.
+- Real assets: screenshots, a screen recording, logo, brand colours (or "pick for me").
+- Length, aspect ratio (16:9, 9:16, 1:1), platform, and the call to action.
+
+Anything not given gets a sensible default, stated in the prompt.
+
+**2. Pull the reference's style DNA from the evidence, not from memory.**
+- **Structure:** zoom across every scene boundary (`--fps 4–8`) to get each shot's exact in/out time and what animates inside it.
+- **Rhythm:** estimate the BPM from cut spacing and `loud` moments (cuts at 0.5 s multiples suggest 120 bpm). Note which beats the cuts land on.
+- **Colour:** run `VW colors`. The dominant colours give the background and surfaces; the accents give the brand colours. Give each hex a *role* (background, text, primary, highlight, success).
+- **Type:** weight, case, and size as a share of frame height (e.g. "headline ≈ 9% of frame height, semibold"). Note whether words animate one at a time, how far they rise, and whether they blur in.
+- **Motion:** entry types (rise and fade, scale-pop, blur-in, 3D tilt, push-in), the feel of the easing (snappy ease-out vs. gentle ease-in-out), durations (e.g. 300–400 ms), stagger between items, and camera moves, motion blur and depth (shadows, glows, glass cards).
+- **Story arc:** hook → problem/promise → product moment → proof → payoff → logo/CTA, each with its time range.
+- **Sound:** music energy and where the hits land (from audio cues: measured, not heard).
+
+**3. Map the user's content beat for beat** onto the same structure and timings. Keep the pacing, swap the words and screens. Where the reference has a weakness (late product, tiny CTA, no proof), fix it and say so.
+
+**4. Output the production prompt.** Make it a single copy-paste block, written so another agent or tool can build it without seeing the reference:
+- **A. Master brief:** format (resolution, fps, length), the overall look in 2–3 sentences, the palette table (hex → role), the type spec, the motion rules (easing as a cubic-bezier, standard durations, stagger), and the transition rule (e.g. hard cuts on the beat).
+- **B. Shot list:** for every shot, the time range, what's on screen (exact copy, with which words get the accent colour), layout, the animation in and out, the camera, and the sound cue.
+- **C. Build target.** For motion graphics with UI or text (most product ads), target code: "Build in Remotion (React) at 1920×1080, 60 fps" with components per shot, so text stays crisp and the timing is exact. Text-to-video models (Veo, Sora, Runway, Kling) garble UI text and logos, so give those per-shot prompts only for text-free footage (people, products, environments), and add "no text, no logos" to each.
+- **D. Music brief:** BPM, genre and energy curve, and where the hits sit. Say it must be licensed or original.
+- **E. Quality bar:** a checklist the builder must pass, such as text legible at phone size, the product visible within 3–5 s, every cut on a beat, no stretched assets, and a CTA held at least 2 s.
+
+Offer next steps after the prompt: build it now in Claude Code (Remotion), or adjust the brief.

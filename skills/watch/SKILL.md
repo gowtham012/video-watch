@@ -1,6 +1,6 @@
 ---
 name: watch
-description: Watches and understands a video the way a person would — YouTube or any URL, or a local file — by skimming scene-aware keyframes, reading a timestamped transcript, noticing audio cues (music, silence, loud hits), and re-watching moments up close. Use when the user says "watch this video", "/watch", "what happens in this video", "review/critique this launch video", "summarize this talk/tutorial", "what went wrong in this screen recording", or pastes a video link and asks anything about it.
+description: Watches and understands a video the way a person would — YouTube or any URL, or a local file — by skimming scene-aware keyframes, reading a timestamped transcript, noticing audio cues (music, silence, loud hits), and re-watching moments up close. Use when the user says "watch this video", "/watch", "what happens in this video", "review/critique this launch video", "summarize this talk/tutorial", "what went wrong in this screen recording", "make a video like this", "remake this for my product", or pastes a video link and asks anything about it.
 ---
 
 # Watch a video like a person
@@ -73,6 +73,7 @@ People rewind when something is fast, important or confusing. Do the same. Zoom 
 ```
 VW zoom  --dir <dir> --start 1:32 --end 1:36 --fps 6 [--crop x,y,w,h]   # dense frames + speech in window
 VW frame --dir <dir> --at 1:34.5 [--crop 0.5,0,0.5,0.5] --width 1920    # one sharp frame / lean in on a region
+VW colors --dir <dir> [--at 0:03,0:12]                                  # measured palette: dominant + accent hex
 ```
 
 `--crop` uses fractions of the frame: `0.5,0,0.5,0.5` is the top-right quarter. Keep zooms short, about 2–8 s, since each frame costs roughly 450–1,300 image tokens.
@@ -87,7 +88,17 @@ Then answer the user's actual question. Rules:
 - **State the gaps.** With no transcript, speech is unknown, so never invent dialogue. Between frames is unseen unless zoomed.
 - Prefer what is on screen over the description when they conflict, and point the conflict out.
 
-For use-case lenses (launch/marketing critique, tutorials and talks, screen recordings and bug repros, general Q&A), read `references/lenses.md` and apply the matching one.
+For use-case lenses (launch/marketing critique, tutorials and talks, screen recordings and bug repros, remaking a video in the same style, general Q&A), read `references/lenses.md` and apply the matching one.
+
+## 6. Ask what's next (when the goal wasn't stated)
+
+If the user only pasted a link, or said just "watch this", don't guess the goal. Give the gist and the timeline, then ask once what they want to do with the video. In Claude Code use `AskUserQuestion` with these options:
+- **Remake it with my content.** Same style and quality, their product or story. Uses the "Remake" lens.
+- **Critique it.** Launch/marketing lens: scorecard and the top fixes.
+- **Detailed summary.** Key points and takeaways.
+- **Pull out text, code or steps.** Tutorial lens, verbatim.
+
+Skip the question when the request already says what they want ("critique this", "summarize", "make one like this for X").
 
 ## Output shape (default)
 
@@ -95,5 +106,7 @@ For use-case lenses (launch/marketing critique, tutorials and talks, screen reco
 2. **Timeline:** 5–15 beats, `[mm:ss] what happens`. Scale with length.
 3. **The answer or analysis** the user asked for, using the lens.
 4. **Confidence notes:** anything not seen, heard or verified, in one or two lines.
+
+With the Remake lens the output is the production prompt instead (see `references/lenses.md`).
 
 Keep the work dir. Follow-up questions should reuse it (zoom, frame) instead of re-running prepare.
