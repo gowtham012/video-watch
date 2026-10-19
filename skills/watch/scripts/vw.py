@@ -25,6 +25,8 @@ import subprocess
 import sys
 
 AW, AH = 32, 18  # analysis thumbnail size (gray)
+# ponytail: 9x more pixels to diff in pure Python - only paid when asked for (sensitivity >= 3)
+AW_FINE, AH_FINE = 96, 54  # small UI/text changes vanish at 32x18
 
 
 # ---------------------------------------------------------------- helpers
@@ -92,15 +94,23 @@ def scale_filter(longside):
             f"'if(gt(iw,ih),-2,min({longside},ih))'")
 
 
-def grab(video, t, out, longside=768, crop=None):
+def grab(video, t, out, longside=768, crop=None, dur=None):
+    """One JPEG at t. Returns False (never dies) if ffmpeg can't decode a frame there."""
+    if dur:
+        t = max(0.0, min(t, dur - 0.25))  # seeking at/after the last frame yields nothing
     vf = []
     if crop:
         x, y, w, h = crop
         vf.append(f"crop=iw*{w}:ih*{h}:iw*{x}:ih*{y}")
     vf.append(scale_filter(longside))
-    run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.3f}", "-i", video,
-         "-frames:v", "1", "-vf", ",".join(vf), "-q:v", "3", out])
-    return os.path.exists(out)
+    if os.path.exists(out):
+        os.remove(out)
+    p = run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.3f}", "-i", video,
+             "-frames:v", "1", "-vf", ",".join(vf), "-q:v", "3", out], check=False)
+    ok = p.returncode == 0 and os.path.exists(out)
+    if not ok:
+        print(f"[vw] no frame at {t:.2f}s - skipped", file=sys.stderr)
+    return ok
 
 
 # ---------------------------------------------------------------- ingest
@@ -127,14 +137,16 @@ def ingest(src, out, start, end):
            "bv*[height<=720]+ba/b[height<=720]/bv*+ba/b",
            "--merge-output-format", "mp4", "-o", os.path.join(out, "video.%(ext)s"),
            "--write-info-json", "--write-subs", "--write-auto-subs",
-           "--sub-langs", "en.*,en,-live_chat", "--sub-format", "vtt/srt/best",
-           "--no-progress", "--quiet", "--no-warnings"]
+           # ponytail: explicit list - "en.*" also matched auto-translated tracks (en-de...),
+           # and one 429 on any of them aborted the whole download
+           "--sub-langs", "en,en-orig,en-US,en-GB,-live_chat", "--sub-format", "vtt/srt/best",
+           "--ignore-errors", "--no-progress", "--quiet", "--no-warnings"]
     if os.environ.get("VW_COOKIES_BROWSER"):  # e.g. chrome / safari, for "confirm you're not a bot"
         cmd += ["--cookies-from-browser", os.environ["VW_COOKIES_BROWSER"]]
     p = run(cmd + [src], check=False)
     vids = [f for f in glob.glob(os.path.join(out, "video.*"))
             if f.rsplit(".", 1)[-1] in ("mp4", "mkv", "webm", "mov")]
-    if p.returncode != 0 or not vids:
+    if not vids:  # subtitle errors are non-fatal; only a missing video is
         die("yt-dlp failed: " + (p.stderr or b"").decode("utf-8", "replace")[-1200:]
             + "\nTip: update yt-dlp (brew upgrade yt-dlp) - YouTube changes often.")
     video = vids[0]
@@ -233,13 +245,14 @@ def whisper(video, out, has_audio):
 
 
 # ---------------------------------------------------------------- vision
-def analyze_changes(video, start, dur, afps):
+def analyze_changes(video, start, dur, afps, size=(AW, AH)):
     """Stream tiny gray frames; return list of (t, frame_bytes)."""
+    aw, ah = size
     cmd = ["ffmpeg", "-v", "error", "-ss", f"{start:.3f}", "-t", f"{dur:.3f}", "-i", video,
-           "-vf", f"fps={afps},scale={AW}:{AH}:flags=area,format=gray",
+           "-vf", f"fps={afps},scale={aw}:{ah}:flags=area,format=gray",
            "-f", "rawvideo", "-"]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-    n = AW * AH
+    n = aw * ah
     frames, i = [], 0
     while True:
         buf = p.stdout.read(n)
@@ -267,7 +280,11 @@ def pick_keyframes(frames, max_frames, sensitivity, min_gap):
     """Segment the video into visual 'states'; return keyframes + cut stats."""
     if not frames:
         return [], [], []
-    thr = 0.03 / sensitivity            # fraction of area that must change (2.0 -> 1.5%)
+    fine = len(frames[0][1]) > AW * AH  # analysed at AW_FINE x AH_FINE (sensitivity >= 3)
+    # fraction of area that must change. coarse: 2.0 -> 1.5%. fine: 3.0 -> 0.15% (~8 of 5184
+    # cells = one short text label; a moving cursor touches ~2-4 cells, so it stays below)
+    thr = (0.0045 if fine else 0.03) / sensitivity
+    px = max(8, 48 / sensitivity)       # per-pixel change that counts (2.0 -> 24, 3.0 -> 16)
     bounds = [(frames[0][0], 1e9)]
     ref = frames[0][1]
     cuts = []
@@ -277,7 +294,7 @@ def pick_keyframes(frames, max_frames, sensitivity, min_gap):
         if cf_prev > 0.45:
             cuts.append(round(t, 2))     # hard cut between consecutive samples
         prev = fr
-        cf, _ = diff(fr, ref)
+        cf, _ = diff(fr, ref, px)
         if cf >= thr and t - bounds[-1][0] >= min_gap:
             bounds.append((t, cf))
             ref = fr
@@ -545,13 +562,14 @@ def cmd_prepare(a):
     # vision
     afps = a.analysis_fps or round(min(4.0, max(0.5, 7200 / dur)), 2)
     print(f"[vw] scanning visual changes at {afps} fps ...", file=sys.stderr)
-    small = analyze_changes(video, s, dur, afps)
+    size = (AW_FINE, AH_FINE) if a.sensitivity >= 3 else (AW, AH)
+    small = analyze_changes(video, s, dur, afps, size)
     picks, cuts, _ = pick_keyframes(small, a.max_frames, a.sensitivity, a.min_gap)
     print(f"[vw] extracting {len(picks)} keyframes ...", file=sys.stderr)
     frames_info = []
     for i, p in enumerate(picks):
         name = f"frames/f{i:03d}_{int(p['t'] // 60):02d}m{p['t'] % 60:04.1f}s.jpg"
-        if grab(video, p["t"], os.path.join(out, name), a.width):
+        if grab(video, p["t"], os.path.join(out, name), a.width, dur=pinfo["duration"]):
             frames_info.append({"idx": i, "t": p["t"], "kind": p["kind"], "file": name, "seg": p["seg"]})
     sheets = [] if a.no_sheets else contact_sheets(frames_info, out)
 
@@ -605,7 +623,7 @@ def cmd_zoom(a):
     for i in range(max(n, 1)):
         t = s + (i + 0.5) / a.fps if n else s
         name = f"z{i:03d}_{int(t // 60):02d}m{t % 60:05.2f}s.jpg"
-        if grab(m["video"], t, os.path.join(sub, name), a.width, crop):
+        if grab(m["video"], t, os.path.join(sub, name), a.width, crop, m["probe"]["duration"]):
             files.append({"idx": i, "t": round(t, 2), "kind": "zoom",
                           "file": os.path.relpath(os.path.join(sub, name), a.dir)})
     sheets = contact_sheets([dict(f, file=os.path.basename(f["file"])) for f in files], sub,
@@ -622,7 +640,8 @@ def cmd_frame(a):
     crop = parse_crop(a.crop)
     tag = "_crop" if crop else ""
     name = os.path.join(a.dir, f"hi_{t:.2f}s{tag}.jpg")
-    grab(m["video"], t, name, a.width, crop)
+    if not grab(m["video"], t, name, a.width, crop, m["probe"]["duration"]):
+        die(f"could not extract a frame at {ts(t)} (video is {ts(m['probe']['duration'])} long)")
     print(name)
 
 

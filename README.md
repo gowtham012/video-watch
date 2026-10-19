@@ -2,6 +2,17 @@
 
 Lets Claude watch a video the way a person does. It works in Cowork and Claude Code.
 
+## Install
+
+In Claude Code:
+
+```
+/plugin marketplace add gowtham012/video-watch
+/plugin install video-watch@video-watch
+```
+
+To try a local checkout instead: `claude --plugin-dir /path/to/video-watch`.
+
 Use it like this:
 
 ```

@@ -1,0 +1,16 @@
+{
+  "name": "video-watch",
+  "owner": {
+    "name": "Gowtham"
+  },
+  "metadata": {
+    "description": "Lets Claude watch and understand videos: scene-aware keyframes, timestamped transcript, audio cues, and zoom/re-watch."
+  },
+  "plugins": [
+    {
+      "name": "video-watch",
+      "source": "./",
+      "description": "Lets Claude watch and understand videos (YouTube, any URL, or local files) like a person."
+    }
+  ]
+}
