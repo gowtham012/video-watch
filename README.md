@@ -2,6 +2,10 @@
 
 Lets Claude watch a video the way a person does. It works in Cowork and Claude Code.
 
+[![video-watch launch ad (33 s), click to play](media/launch-ad-poster.jpg)](media/launch-ad-v2.mp4)
+
+*33-second launch ad, built in Remotion from the plugin's own remake prompt ([source](ad/), [prompt](media/remake-prompt.md)).*
+
 ## Install
 
 In Claude Code:
