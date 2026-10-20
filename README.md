@@ -94,7 +94,7 @@ Show it a video you love and say **"make one like this for my product."** The pl
 
 It then writes a **production prompt** that rebuilds that quality around your content: a master brief, a shot list with exact timings, a Remotion build plan, a music brief and a quality checklist. It copies the style only, never the original's logos, footage, copy or music.
 
-> [`media/remake-prompt.md`](media/remake-prompt.md) is a real example: it reverse-engineers a SaaS launch ad. The video at the top of this page was built from it, and the code is in [`ad/`](ad/).
+> [`media/remake-prompt.md`](media/remake-prompt.md) is a real example: it reverse-engineers a SaaS launch ad. The video at the top of this page was built from it, and the code is in [`launch-video/`](launch-video/).
 
 ## Numbers
 
@@ -154,7 +154,7 @@ $VW colors  --dir ./vw-x [--at 0:03,0:12]                                   # me
 skills/watch/          the skill: SKILL.md, viewing lenses, and scripts/vw.py
 media/                 all videos (launch ad v1 + v2, how-it-works explainer), poster, example remake prompt
 media/build/           scripts + demo clip that rebuild the videos
-ad/                    Remotion source for the launch ad v2 (not part of the plugin)
+launch-video/          Remotion source for the launch ad v2 (not part of the plugin)
 docs/                  research verdict from the multi-agent viability review
 ```
 
