@@ -50,7 +50,7 @@ watch this talk and give me the 5 key arguments: https://youtu.be/...
 
 If you paste a link without saying what you want, Claude gives you the gist and a timeline, then asks what to do next:
 
-| | |
+| Option | What you get |
 |---|---|
 | 🎬 **Remake it with my content** | Same style and quality, your product. See [below](#remake-any-video-in-your-own-style). |
 | 🧐 **Critique it** | A hook, pacing and CTA scorecard, plus the top fixes, all timestamped. |
@@ -60,14 +60,19 @@ If you paste a link without saying what you want, Claude gives you the gist and 
 ## How it watches
 
 ```mermaid
-flowchart LR
-    V["🎥 Video<br/><sub>URL or file</sub>"] --> P["prepare<br/><sub>yt-dlp + ffmpeg</sub>"]
-    P --> K["🖼 Keyframes<br/><sub>when the picture changes</sub>"]
-    P --> T["💬 Transcript<br/><sub>captions or Whisper</sub>"]
-    P --> A["🔊 Audio cues<br/><sub>silence, music, hits</sub>"]
-    P --> C["✂️ Pacing<br/><sub>cuts per minute</sub>"]
-    K & T & A & C --> M["manifest.md<br/><sub>one timeline</sub>"]
-    M --> S["Skim<br/><sub>contact sheets</sub>"] --> Z["Zoom<br/><sub>dense frames</sub>"] --> R["Answer<br/><sub>[mm:ss] every claim</sub>"]
+flowchart TD
+    V["🎥 Video: URL or file"] --> P["prepare · yt-dlp + ffmpeg"]
+    P --> K["🖼 Keyframes"]
+    P --> T["💬 Transcript"]
+    P --> A["🔊 Audio cues"]
+    P --> C["✂️ Pacing"]
+    K --> M["📄 manifest.md: one timeline"]
+    T --> M
+    A --> M
+    C --> M
+    M --> S["1 · Skim contact sheets"]
+    S --> Z["2 · Zoom into key moments"]
+    Z --> R["3 · Answer with timestamps"]
 ```
 
 | A person… | video-watch… |
@@ -95,7 +100,7 @@ It then writes a **production prompt** that rebuilds that quality around your co
 
 All of these were measured on a MacBook (Apple Silicon) while testing this release.
 
-| | |
+| Measure | Result |
 |---|---|
 | ⚡️ **Prepare time** | about 6 s for a 3–5 minute 720p video, about 9 s for a 10-minute 1080p video |
 | 🪙 **Cost to read** | about 7k image tokens (contact sheets only) to 27k (every frame) for a 10-minute video |
@@ -128,7 +133,7 @@ $VW colors  --dir ./vw-x [--at 0:03,0:12]                                   # me
 
 ## Requirements
 
-| | |
+| Need | Install |
 |---|---|
 | **Required** | `ffmpeg` + `ffprobe`, and `yt-dlp` for links: `brew install ffmpeg yt-dlp` |
 | Optional | `pip install pillow` for contact sheets (a cheaper first pass) |
