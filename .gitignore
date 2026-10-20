@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 vw-*/
 carry-forward/
+media/build/demo/out/
+media/build/demo/build/

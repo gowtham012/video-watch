@@ -152,8 +152,10 @@ $VW colors  --dir ./vw-x [--at 0:03,0:12]                                   # me
 ```
 .claude-plugin/        plugin + marketplace manifests
 skills/watch/          the skill: SKILL.md, viewing lenses, and scripts/vw.py
-media/                 launch ad, poster, and the example remake prompt
-ad/                    Remotion source for the launch ad (not part of the plugin)
+media/                 all videos (launch ad v1 + v2, how-it-works explainer), poster, example remake prompt
+media/build/           scripts + demo clip that rebuild the videos
+ad/                    Remotion source for the launch ad v2 (not part of the plugin)
+docs/                  research verdict from the multi-agent viability review
 ```
 
 <div align="center">
