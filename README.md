@@ -8,6 +8,7 @@ Paste a YouTube link, any URL or a local file into Claude Code. Claude sees the 
 
 [![version](https://img.shields.io/badge/version-0.4.0-4F46E5?style=flat-square)](.claude-plugin/plugin.json)
 [![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-0A0A12?style=flat-square)](#install)
+[![license: MIT](https://img.shields.io/badge/license-MIT-64748B?style=flat-square)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/gowtham012/video-watch?style=flat-square&color=F59E0B)](https://github.com/gowtham012/video-watch/stargazers)
 [![needs ffmpeg](https://img.shields.io/badge/needs-ffmpeg_+_yt--dlp-38BDF8?style=flat-square)](#requirements)
 [![python](https://img.shields.io/badge/python-3.9+-10B981?style=flat-square)](skills/video/scripts/vw.py)
@@ -213,7 +214,7 @@ $SFX mix    --dir ./vw-x --out ./vw-x/sound/preview.mp4 [--stem] [--dry-run]   #
 ## What's in the repo
 
 ```
-.claude-plugin/        plugin + marketplace manifests
+.claude-plugin/        plugin + marketplace manifests, plugin icon
 skills/video/          the /video skill: SKILL.md (watch), references/ (lenses, sound), scripts/vw.py and scripts/sfx.py
 media/                 all videos (launch ad v1 + v2, how-it-works explainer), demo GIF, poster, social preview, example remake prompt
 media/build/           scripts + demo clip that rebuild the videos
@@ -232,6 +233,6 @@ Issues and pull requests are welcome. The most useful thing you can send is a vi
 
 If Claude Video Watch saved you from scrubbing through a video, a ⭐ helps other people find it.
 
-<sub>Made by Gowtham · built with Claude Code</sub>
+<sub>Made by Gowtham · built with Claude Code · [MIT license](LICENSE)</sub>
 
 </div>

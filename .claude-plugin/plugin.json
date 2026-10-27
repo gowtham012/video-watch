@@ -22,5 +22,6 @@
     "claude-code",
     "multimodal"
   ],
-  "homepage": "https://github.com/gowtham012/video-watch"
+  "homepage": "https://github.com/gowtham012/video-watch",
+  "license": "MIT"
 }
