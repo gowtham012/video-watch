@@ -1,9 +1,11 @@
 {
   "name": "video-watch",
-  "version": "0.3.0",
-  "description": "Lets Claude watch and understand videos (YouTube, any URL, or local files) like a person: scene-aware keyframes, timestamped transcript, audio cues, and zoom/re-watch.",
+  "displayName": "Claude Video Watch",
+  "version": "0.4.0",
+  "description": "One /video command. /video watch understands videos (YouTube, any URL, or local files) like a person: scene-aware keyframes, timestamped transcript, audio cues, and zoom/re-watch. /video sound finds openly licensed Openverse sound effects and lines each one up with its moment, with credits.",
   "author": {
     "name": "Gowtham"
   },
-  "keywords": ["video", "youtube", "transcript", "frames", "launch-video", "screen-recording"]
+  "repository": "https://github.com/gowtham012/video-watch",
+  "keywords": ["video", "youtube", "transcript", "frames", "launch-video", "screen-recording", "sound-effects", "sfx", "openverse"]
 }

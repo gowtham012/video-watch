@@ -4,13 +4,14 @@
     "name": "Gowtham"
   },
   "metadata": {
-    "description": "Lets Claude watch and understand videos: scene-aware keyframes, timestamped transcript, audio cues, and zoom/re-watch."
+    "description": "Claude Video Watch: Claude watches and understands videos, and adds openly licensed sound effects on the beat."
   },
   "plugins": [
     {
       "name": "video-watch",
+      "displayName": "Claude Video Watch",
       "source": "./",
-      "description": "Lets Claude watch and understand videos (YouTube, any URL, or local files) like a person."
+      "description": "One /video command: /video watch understands videos like a person; /video sound adds Openverse sound effects in sync."
     }
   ]
 }

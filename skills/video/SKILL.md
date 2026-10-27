@@ -1,15 +1,30 @@
 ---
-name: watch
-description: Watches and understands a video the way a person would — YouTube or any URL, or a local file — by skimming scene-aware keyframes, reading a timestamped transcript, noticing audio cues (music, silence, loud hits), and re-watching moments up close. Use when the user says "watch this video", "/watch", "what happens in this video", "review/critique this launch video", "summarize this talk/tutorial", "what went wrong in this screen recording", "make a video like this", "remake this for my product", or pastes a video link and asks anything about it.
+name: video
+description: Claude video watch. One /video command with subcommands. "watch" (the default) watches and understands a video the way a person would — YouTube or any URL, or a local file — by skimming scene-aware keyframes, reading a timestamped transcript, noticing audio cues (music, silence, loud hits), and re-watching moments up close. "sound" finds free, openly licensed sound effects, ambience or music on Openverse for moments in a video and lines each clip up with its exact moment, with credits. Use when the user says "watch this video", "/video", "/watch", "what happens in this video", "review/critique this launch video", "summarize this talk/tutorial", "what went wrong in this screen recording", "make a video like this", "remake this for my product", "add sound effects", "find a whoosh/SFX for this cut", "sound design this video", or pastes a video link and asks anything about it.
+argument-hint: "[watch|sound] <url-or-file> [question or what to do]"
 ---
 
-# Watch a video like a person
+# Claude video watch
+
+One command, `/video`, with subcommands. Read the first word of the arguments:
+
+| You type | Does | Instructions |
+|---|---|---|
+| `/video watch <url-or-file> [question]` | Watch and understand the video, then answer | This file, below |
+| `/video <url-or-file> [question]` | Same as `watch` (the default) | This file, below |
+| `/video sound <url-or-file-or-work-dir> [what it needs]` | Find Openverse sound effects for its moments and line them up on the timeline | Read `references/sound.md` |
+
+When the user asks in plain words instead of a command, pick the subcommand from what they want: understanding a video is `watch`; adding or choosing sound effects, ambience or music for a video is `sound`. If a request needs both ("watch this and add sound"), run `watch` first and reuse its work dir for `sound`.
+
+Everything is permission-based: ask before installing a tool, downloading a model, or downloading any audio file.
+
+## watch: see a video like a person
 
 Claude cannot take video directly. `scripts/vw.py` (in this skill's base directory) turns a video into what a person actually perceives: the *changes* on screen (not a fixed frame grid), what is said and when, and what the sound is doing. Claude then watches in passes: skim, understand, re-watch, answer.
 
 Arguments: a URL or file path, optionally followed by a question or a time range ("from 2:10 to 3:00").
 
-## 1. Prepare (pick the runtime)
+### 1. Prepare (pick the runtime)
 
 `VW` = `python3 <this skill's base directory>/scripts/vw.py`. Pick a work dir such as `./vw-<short-slug>` in the current project, or the scratchpad.
 
@@ -34,12 +49,12 @@ Tune it to the video:
   4. If both fail (the computer's sandbox follows the org's network allowlist, which often blocks YouTube too), say so plainly. Offer three ways forward:
      - The user downloads the video and drops it into a connected folder.
      - An admin allows the domain in network settings.
-     - The user runs `/watch` from Claude Code on their Mac, which has normal network access.
+     - The user runs `/video watch` from Claude Code on their Mac, which has normal network access.
 - Frames are read with `Read` from the cloud workspace.
 
 YouTube "confirm you're not a bot" errors: set `VW_COOKIES_BROWSER=chrome` (or safari) and retry, or update yt-dlp.
 
-## 2. Orient (like reading the title and the room)
+### 2. Orient (like reading the title and the room)
 
 Read `<dir>/manifest.md` in full before looking at any image. It has:
 - Metadata, the uploader's description and chapters.
@@ -52,7 +67,7 @@ Each frame has a kind:
 - `motion`: sampled during continuous movement.
 - `coverage`: an extra look inside a long, unchanging stretch.
 
-## 3. Skim (first watch)
+### 3. Skim (first watch)
 
 View the contact sheets in order (`sheet_*.jpg`, 12 labelled frames each). This is the cheap first pass, like watching at 2× speed. On the side, write a running timeline:
 
@@ -62,7 +77,7 @@ Pair each frame with the speech near its timestamp. Meaning comes from the combi
 
 Open individual `frames/*.jpg` files only where a sheet thumbnail is too small: on-screen text, code, UI labels, faces, numbers.
 
-## 4. Re-watch what matters (second watch)
+### 4. Re-watch what matters (second watch)
 
 People rewind when something is fast, important or confusing. Do the same. Zoom when any of these apply:
 - An answer depends on something that happens between two keyframes.
@@ -78,7 +93,7 @@ VW colors --dir <dir> [--at 0:03,0:12]                                  # measur
 
 `--crop` uses fractions of the frame: `0.5,0,0.5,0.5` is the top-right quarter. Keep zooms short, about 2–8 s, since each frame costs roughly 450–1,300 image tokens.
 
-## 5. Understand, then answer
+### 5. Understand, then answer
 
 Build the model a person ends up with: what the video is, who it's for, the story arc and its turning points, what is shown versus claimed, and how it feels (pace, energy, music).
 
@@ -90,7 +105,7 @@ Then answer the user's actual question. Rules:
 
 For use-case lenses (launch/marketing critique, tutorials and talks, screen recordings and bug repros, remaking a video in the same style, general Q&A), read `references/lenses.md` and apply the matching one.
 
-## 6. Ask what's next (when the goal wasn't stated)
+### 6. Ask what's next (when the goal wasn't stated)
 
 If the user only pasted a link, or said just "watch this", don't guess the goal. Give the gist and the timeline, then ask once what they want to do with the video. In Claude Code use `AskUserQuestion` with these options:
 - **Remake it with my content.** Same style and quality, their product or story. Uses the "Remake" lens.
@@ -100,7 +115,7 @@ If the user only pasted a link, or said just "watch this", don't guess the goal.
 
 Skip the question when the request already says what they want ("critique this", "summarize", "make one like this for X").
 
-## Output shape (default)
+### Output shape (default)
 
 1. **One-line gist:** what this video is.
 2. **Timeline:** 5–15 beats, `[mm:ss] what happens`. Scale with length.
@@ -109,4 +124,4 @@ Skip the question when the request already says what they want ("critique this",
 
 With the Remake lens the output is the production prompt instead (see `references/lenses.md`).
 
-Keep the work dir. Follow-up questions should reuse it (zoom, frame) instead of re-running prepare.
+Keep the work dir. Follow-up questions should reuse it (zoom, frame) instead of re-running prepare, and so should `/video sound` if the user then wants sound effects for this video.

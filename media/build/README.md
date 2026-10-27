@@ -12,7 +12,7 @@ Everything needed to rebuild the videos is in this repo. The launch ad (v2) live
 
 ```bash
 # how-it-works.mp4: run the plugin on the demo clip, then render slides + narration
-python3 skills/watch/scripts/vw.py prepare media/build/demo/demo.mp4 --out media/build/demo/out --no-whisper
+python3 skills/video/scripts/vw.py prepare media/build/demo/demo.mp4 --out media/build/demo/out --no-whisper
 python3 media/build/make.py media/build/demo media/how-it-works.mp4
 
 # launch-ad-v1.mp4
