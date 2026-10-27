@@ -4,18 +4,23 @@
 
 **Claude can't take a video file directly. Now it can watch one, and score it with sound.**
 
-A Claude Code plugin that turns any video (a YouTube link, any URL, or a local file) into what a person actually notices: the moments the picture changes, what's said and when, and what the sound is doing. Claude then skims, rewinds and answers with a timestamp for every claim. It can also find free, openly licensed sound effects on Openverse and line each one up with its exact moment.
+Paste a YouTube link, any URL or a local file into Claude Code. Claude sees the moments the picture changes, hears what's said and when, notices what the sound is doing, and answers with a timestamp for every claim. It can also find free, openly licensed sound effects and line each one up with its exact cut.
 
 [![version](https://img.shields.io/badge/version-0.4.0-4F46E5?style=flat-square)](.claude-plugin/plugin.json)
 [![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-0A0A12?style=flat-square)](#install)
+[![GitHub stars](https://img.shields.io/github/stars/gowtham012/video-watch?style=flat-square&color=F59E0B)](https://github.com/gowtham012/video-watch/stargazers)
 [![needs ffmpeg](https://img.shields.io/badge/needs-ffmpeg_+_yt--dlp-38BDF8?style=flat-square)](#requirements)
 [![python](https://img.shields.io/badge/python-3.9+-10B981?style=flat-square)](skills/video/scripts/vw.py)
 
 <br>
 
-[![Watch the 33-second launch ad](media/launch-ad-poster.jpg)](media/launch-ad-v2.mp4)
+[![Claude Video Watch in 30 seconds](media/demo.gif)](media/launch-ad-v2.mp4)
 
-<sub>▲ The launch ad. Click to play. It was built from a production prompt that this plugin wrote ([see how](#remake-any-video-in-your-own-style)).</sub>
+<sub>▲ The launch ad (click for the full version with sound). This plugin wrote the production prompt it was built from ([see how](#remake-any-video-in-your-own-style)).</sub>
+
+<br>
+
+**[Install](#install)** · **[What it's for](#what-its-for)** · **[How it watches](#how-it-watches)** · **[Sound effects](#add-sound-effects-on-the-beat)** · **[Numbers](#numbers)**
 
 </div>
 
@@ -23,20 +28,37 @@ A Claude Code plugin that turns any video (a YouTube link, any URL, or a local f
 
 ## Install
 
-In Claude Code:
+Two commands in Claude Code, plus ffmpeg:
 
 ```
 /plugin marketplace add gowtham012/video-watch
 /plugin install video-watch@video-watch
 ```
 
-Then install the two tools it relies on (macOS):
-
 ```bash
-brew install ffmpeg yt-dlp
+brew install ffmpeg yt-dlp      # macOS. On Linux: apt install ffmpeg && pip install yt-dlp
 ```
 
-That's it. To try a local checkout instead, start Claude Code with `claude --plugin-dir /path/to/video-watch`.
+Then paste a link: `/video https://youtu.be/... what's the main argument?`
+
+No API key and no third-party video service: the video is processed on your machine and Claude reads the result. To try a local checkout instead, start Claude Code with `claude --plugin-dir /path/to/video-watch`.
+
+## What it's for
+
+| You have… | Ask… |
+|---|---|
+| 🐛 **A bug report screen recording** | "what goes wrong after login?" and get the second it breaks, with the frame. |
+| 🚀 **Your launch video, or a competitor's** | "critique this" for a hook, pacing and CTA scorecard with timestamped fixes. |
+| 🎤 **A long talk or podcast** | "the 5 key arguments, with timestamps" without sitting through an hour. |
+| 💻 **A coding tutorial** | "pull out the code and the steps", read verbatim from the frames. |
+| 🎬 **An ad you wish you'd made** | "make one like this for my product" for a production prompt in the same style. |
+| 🔊 **A silent edit** | `/video sound` for whooshes on the cuts and clicks on the taps, openly licensed and credited. |
+
+## Why not just…
+
+- **…give Claude a screenshot?** One frame misses everything that moves. This keeps a frame each time the picture settles, then lets Claude zoom into any second it's unsure about.
+- **…use the transcript?** Half of a demo, an ad or a bug is on screen or in the sound, not in the words. Frames, speech, silences and loud hits all land on one timeline.
+- **…use a model that takes video?** You'd leave Claude and your project. Here a 10-minute video costs about 7k to 27k image tokens, and the answer arrives in the session that's already working on your code.
 
 ## Use it
 
@@ -193,16 +215,22 @@ $SFX mix    --dir ./vw-x --out ./vw-x/sound/preview.mp4 [--stem] [--dry-run]   #
 ```
 .claude-plugin/        plugin + marketplace manifests
 skills/video/          the /video skill: SKILL.md (watch), references/ (lenses, sound), scripts/vw.py and scripts/sfx.py
-media/                 all videos (launch ad v1 + v2, how-it-works explainer), poster, example remake prompt
+media/                 all videos (launch ad v1 + v2, how-it-works explainer), demo GIF, poster, social preview, example remake prompt
 media/build/           scripts + demo clip that rebuild the videos
 launch-video/          Remotion source for the launch ad v2 (not part of the plugin)
 docs/                  research verdict from the multi-agent viability review
 ```
 
+## Contributing
+
+Issues and pull requests are welcome. The most useful thing you can send is a video it got wrong: the link (or a short clip), what you asked, and what it missed. [Open an issue](https://github.com/gowtham012/video-watch/issues/new).
+
 <div align="center">
 <br>
 
 **Skim. Zoom. Answer.**
+
+If Claude Video Watch saved you from scrubbing through a video, a ⭐ helps other people find it.
 
 <sub>Made by Gowtham · built with Claude Code</sub>
 

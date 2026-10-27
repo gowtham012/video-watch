@@ -7,5 +7,20 @@
     "name": "Gowtham"
   },
   "repository": "https://github.com/gowtham012/video-watch",
-  "keywords": ["video", "youtube", "transcript", "frames", "launch-video", "screen-recording", "sound-effects", "sfx", "openverse"]
+  "keywords": [
+    "video",
+    "youtube",
+    "transcript",
+    "frames",
+    "launch-video",
+    "screen-recording",
+    "sound-effects",
+    "sfx",
+    "openverse",
+    "video-understanding",
+    "summarize",
+    "claude-code",
+    "multimodal"
+  ],
+  "homepage": "https://github.com/gowtham012/video-watch"
 }
