@@ -1,0 +1,67 @@
+{
+  "manifest_version": "0.3",
+  "name": "video-watch",
+  "display_name": "Video Watch",
+  "version": "0.6.0",
+  "description": "Make, voice and review videos by chatting. ElevenLabs voices (pick by listening), voiceover, music and sound effects, plus watching any video like a person. Nothing to install.",
+  "long_description": "Video Watch lets anyone make and improve videos in Claude without technical setup.\n\n- **Watch any video** (YouTube link or a file on your Mac): scene-by-scene contact sheets, a timestamped transcript, cuts and silences.\n- **Pick a voice by listening**: a page opens with your ElevenLabs voices and the whole public voice library, with free previews.\n- **Voiceover, music and sound effects** with your own ElevenLabs account; music automatically gets quieter under the voice.\n- **Quality brief**: Claude asks the questions that decide how a video turns out (goal, audience, format, length, tone, voice, music, brand) before spending anything.\n\nffmpeg and the video downloader are built in. Your original videos are never changed. Requires an ElevenLabs API key (elevenlabs.io → Developers → API Keys).",
+  "author": { "name": "Gowtham", "url": "https://github.com/gowtham012/video-watch" },
+  "repository": { "type": "git", "url": "https://github.com/gowtham012/video-watch" },
+  "homepage": "https://github.com/gowtham012/video-watch/blob/main/docs/TEAM-GUIDE.md",
+  "icon": "assets/icon.png",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"],
+      "env": {
+        "ELEVENLABS_API_KEY": "${user_config.elevenlabs_api_key}",
+        "VW_OUTPUT_DIR": "${user_config.output_dir}"
+      }
+    }
+  },
+  "tools": [
+    { "name": "video_check_setup", "description": "Check the ElevenLabs connection, plan and credits" },
+    { "name": "video_brief_questions", "description": "The quality questions to ask before making a video" },
+    { "name": "video_save_brief", "description": "Save the answers to the brief" },
+    { "name": "list_my_videos", "description": "Find recent videos on this Mac" },
+    { "name": "watch_video", "description": "Watch a video: keyframes, transcript, cuts, silences" },
+    { "name": "zoom_video", "description": "Re-watch a short moment up close" },
+    { "name": "open_voice_picker", "description": "Open the voice picker page (listen and choose)" },
+    { "name": "get_chosen_voice", "description": "Get the voice the user picked" },
+    { "name": "search_voices", "description": "Search ElevenLabs voices" },
+    { "name": "make_voiceover", "description": "Make the voiceover, one clip per line" },
+    { "name": "make_music", "description": "Make instrumental background music" },
+    { "name": "make_sound_effect", "description": "Make a sound effect" },
+    { "name": "mix_video", "description": "Put voice, music and effects onto the video" },
+    { "name": "open_result", "description": "Open the finished video" },
+    { "name": "check_progress", "description": "Wait for a long job to finish" }
+  ],
+  "prompts": [
+    { "name": "make_a_video", "description": "Guided: brief, voice picker, script, voiceover, music, finished video",
+      "arguments": ["idea"], "text": "I want to make a great video: ${arguments.idea}. Check setup first, then walk me through the brief questions a few at a time, help me pick a voice by listening, write the script with me, tell me the credit cost before making anything, and give me the finished video." }
+  ],
+  "user_config": {
+    "elevenlabs_api_key": {
+      "type": "string",
+      "title": "ElevenLabs API key",
+      "description": "From elevenlabs.io → Developers → API Keys → Create key. Stored securely by Claude; never shown in chats.",
+      "sensitive": true,
+      "required": true
+    },
+    "output_dir": {
+      "type": "directory",
+      "title": "Save videos in",
+      "description": "Where finished videos and audio are saved.",
+      "default": "${HOME}/Movies/Video Watch",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin"],
+    "runtimes": { "node": ">=18.0.0" }
+  },
+  "keywords": ["video", "elevenlabs", "voiceover", "text-to-speech", "music", "youtube"],
+  "license": "MIT"
+}

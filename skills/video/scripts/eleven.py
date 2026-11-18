@@ -157,46 +157,90 @@ def fetch_voices(key):
 
 def slim_voice(v):
     lab = v.get("labels") or {}
-    return {"voice_id": v.get("voice_id"), "name": v.get("name"), "category": v.get("category"),
+    return {"voice_id": v.get("voice_id"), "name": v.get("name"), "source": "mine", "category": v.get("category"),
             "gender": lab.get("gender"), "age": lab.get("age"), "accent": lab.get("accent"),
             "use_case": lab.get("use_case") or lab.get("use case"), "descriptive": lab.get("descriptive"),
-            "description": (v.get("description") or "")[:200], "preview_url": v.get("preview_url")}
+            "language": lab.get("language"), "description": (v.get("description") or "")[:200],
+            "preview_url": v.get("preview_url"), "rate": 1.0}
+
+
+def slim_library(v):
+    return {"voice_id": v.get("voice_id"), "name": v.get("name"), "source": "library", "category": v.get("category"),
+            "public_owner_id": v.get("public_owner_id"), "gender": v.get("gender"), "age": v.get("age"),
+            "accent": v.get("accent"), "use_case": v.get("use_case"), "descriptive": v.get("descriptive"),
+            "language": v.get("language"), "description": (v.get("description") or "")[:200],
+            "preview_url": v.get("preview_url"), "rate": v.get("rate") or 1.0}
+
+
+LIB_FILTERS = ("search", "gender", "age", "accent", "use_cases", "language")
+
+
+def library_page(key, q, page):
+    """One page of the public Voice Library (30 voices). Voices with an extra per-use fee are left out."""
+    params = {"page_size": 30, "page": page}
+    params.update({k: q[k] for k in LIB_FILTERS if q.get(k)})
+    r = call("GET", "/v1/shared-voices", key=key, params=params)
+    voices = [slim_library(v) for v in r.get("voices", []) if not v.get("fiat_rate")]
+    return {"voices": voices, "has_more": bool(r.get("has_more")), "total": r.get("total_count")}
 
 
 PICKER = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Choose a voice</title><style>
-:root{--bg:#F5F5FB;--ink:#0A0A12;--sec:#5B6072;--pri:#4F46E5;--card:#fff;--line:#E4E5F0}
-@media (prefers-color-scheme:dark){:root{--bg:#0E0F16;--ink:#F2F3F8;--sec:#A3A7B7;--pri:#8B85F5;--card:#181A24;--line:#2A2D3A}}
+:root{--bg:#F5F5FB;--ink:#0A0A12;--sec:#5B6072;--pri:#4F46E5;--card:#fff;--line:#E4E5F0;--chip:rgba(79,70,229,.12)}
+@media (prefers-color-scheme:dark){:root{--bg:#0E0F16;--ink:#F2F3F8;--sec:#A3A7B7;--pri:#8B85F5;--card:#181A24;--line:#2A2D3A;--chip:rgba(139,133,245,.16)}}
 *{box-sizing:border-box}body{margin:0;font:16px/1.45 -apple-system,BlinkMacSystemFont,"Inter",sans-serif;background:var(--bg);color:var(--ink)}
-header{position:sticky;top:0;background:var(--bg);padding:24px 24px 12px;border-bottom:1px solid var(--line);z-index:2}
+header{position:sticky;top:0;background:var(--bg);padding:22px 24px 12px;border-bottom:1px solid var(--line);z-index:2}
 h1{margin:0 0 4px;font-size:26px;font-weight:600}p.sub{margin:0 0 14px;color:var(--sec)}
+.tabs{display:flex;gap:6px;margin-bottom:12px}.tab{background:transparent;color:var(--sec);border:1px solid var(--line)}
+.tab[aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .bar{display:flex;gap:10px;flex-wrap:wrap}input,select{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
-input{flex:1;min-width:220px}main{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:20px 24px 80px}
+input{flex:1;min-width:220px}main{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:20px 24px 16px}
 .c{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px}
-.c h2{margin:0;font-size:18px}.tags{display:flex;gap:6px;flex-wrap:wrap}.t{font-size:12px;padding:3px 9px;border-radius:99px;background:rgba(79,70,229,.12);color:var(--pri)}
-.d{color:var(--sec);font-size:14px;flex:1}.row{display:flex;gap:8px}
+.c h2{margin:0;font-size:18px}.tags{display:flex;gap:6px;flex-wrap:wrap}.t{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--chip);color:var(--pri)}
+.t.warn{background:rgba(255,90,78,.14);color:#D9362B}.d{color:var(--sec);font-size:14px;flex:1}.row{display:flex;gap:8px}
 button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
-.play{background:rgba(79,70,229,.12);color:var(--pri);flex:1}.use{background:#4F46E5;color:#fff;flex:1}
+.play{background:var(--chip);color:var(--pri);flex:1}.use{background:#4F46E5;color:#fff;flex:1}
+.more{display:block;margin:0 auto 80px;background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.note{grid-column:1/-1;color:var(--sec);margin:0}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
 .done{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:var(--bg);font-size:22px;text-align:center;padding:24px}
 </style></head><body>
-<header><h1>Choose a voice for your video</h1><p class="sub">Press &#9654; Listen to hear each voice. Click <b>Use this voice</b> on the one you like. Claude picks it up automatically.</p>
-<div class="bar"><input id="q" placeholder="Search: warm, British, narration, young..." aria-label="Search voices">
-<select id="g" aria-label="Gender"><option value="">Any gender</option></select>
-<select id="ac" aria-label="Accent"><option value="">Any accent</option></select>
-<select id="u" aria-label="Style"><option value="">Any style</option></select></div></header>
-<main id="list" aria-live="polite"></main><div class="done" id="done" role="status"></div>
+<header><h1>Choose a voice for your video</h1>
+<p class="sub">Press &#9654; Listen to hear a voice (free). Click <b>Use this voice</b> on the one you like. Claude picks it up automatically.</p>
+<div class="tabs" role="tablist"><button class="tab" role="tab" id="t-mine" aria-selected="true">Your voices (__MINE_COUNT__)</button>
+<button class="tab" role="tab" id="t-lib" aria-selected="false">All ElevenLabs voices</button></div>
+<div class="bar"><input id="q" placeholder="Search: warm, British, narration, energetic..." aria-label="Search voices">
+<select id="g" aria-label="Gender"><option value="">Any gender</option><option>female</option><option>male</option><option>neutral</option></select>
+<select id="age" aria-label="Age"><option value="">Any age</option><option value="young">young</option><option value="middle_aged">middle aged</option><option value="old">old</option></select>
+<select id="u" aria-label="Style"><option value="">Any style</option><option value="narrative_story">narrative story</option><option value="conversational">conversational</option><option value="characters_animation">characters &amp; animation</option><option value="social_media">social media</option><option value="entertainment_tv">entertainment &amp; TV</option><option value="advertisement">advertisement</option><option value="informative_educational">informative &amp; educational</option></select>
+<select id="lang" aria-label="Language"><option value="en">English</option><option value="">Any language</option><option value="es">Spanish</option><option value="fr">French</option><option value="de">German</option><option value="hi">Hindi</option><option value="te">Telugu</option><option value="ta">Tamil</option><option value="pt">Portuguese</option><option value="it">Italian</option><option value="ja">Japanese</option><option value="ar">Arabic</option><option value="zh">Chinese</option></select>
+</div></header>
+<main id="list" aria-live="polite"></main><button class="more" id="more" hidden>Load more voices</button>
+<div class="done" id="done" role="status"></div>
 <script>
-const V=__VOICES__;const $=s=>document.querySelector(s);let audio=null;
-function opts(sel,key){[...new Set(V.map(v=>v[key]).filter(Boolean))].sort().forEach(x=>{const o=document.createElement('option');o.value=o.textContent=x;sel.appendChild(o)})}
-opts($('#g'),'gender');opts($('#ac'),'accent');opts($('#u'),'use_case');
-function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-function draw(){const q=$('#q').value.toLowerCase(),g=$('#g').value,a=$('#ac').value,u=$('#u').value;
-$('#list').innerHTML=V.filter(v=>(!g||v.gender===g)&&(!a||v.accent===a)&&(!u||v.use_case===u)&&(!q||JSON.stringify(v).toLowerCase().includes(q)))
-.map(v=>`<div class="c"><h2>${esc(v.name)}</h2><div class="tags">${[v.gender,v.age,v.accent,v.use_case,v.descriptive].filter(Boolean).map(t=>`<span class="t">${esc(t)}</span>`).join('')}</div>
+const MINE=__VOICES__;const $=s=>document.querySelector(s);let audio=null,tab='mine',page=0,lib=[],timer=null,seq=0;
+const pretty=s=>(s||'').replace(/_/g,' ');
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function card(v){const tags=[v.gender,pretty(v.age),v.accent,pretty(v.use_case),v.descriptive,v.language&&tab==='lib'?v.language.toUpperCase():''].filter(Boolean);
+const cost=v.rate&&Number(v.rate)>1?`<span class="t warn">uses ${esc(v.rate)}&times; credits</span>`:'';
+return `<div class="c"><h2>${esc(v.name)}</h2><div class="tags">${tags.map(t=>`<span class="t">${esc(t)}</span>`).join('')}${cost}</div>
 <div class="d">${esc(v.description)}</div><div class="row">${v.preview_url?`<button class="play" data-p="${esc(v.preview_url)}">&#9654; Listen</button>`:''}
-<button class="use" data-id="${esc(v.voice_id)}" data-n="${esc(v.name)}">Use this voice</button></div></div>`).join('')||'<p>No voices match.</p>'}
-['#q','#g','#ac','#u'].forEach(s=>$(s).addEventListener('input',draw));draw();
+<button class="use" data-id="${esc(v.voice_id)}" data-n="${esc(v.name)}">Use this voice</button></div></div>`}
+function filters(){return {q:$('#q').value.toLowerCase(),g:$('#g').value,age:$('#age').value,u:$('#u').value,lang:$('#lang').value}}
+function drawMine(){const f=filters();$('#more').hidden=true;
+const list=MINE.filter(v=>(!f.g||v.gender===f.g)&&(!f.age||v.age===f.age)&&(!f.u||v.use_case===f.u)&&(!f.q||JSON.stringify(v).toLowerCase().includes(f.q)));
+$('#list').innerHTML=list.map(card).join('')||'<p class="note">None of your voices match. Try the <b>All ElevenLabs voices</b> tab.</p>'}
+async function loadLib(reset){const f=filters(),my=++seq;if(reset){page=0;lib=[];$('#list').innerHTML='<p class="note">Searching the ElevenLabs voice library...</p>'}
+const p=new URLSearchParams({search:f.q,gender:f.g,age:f.age,use_cases:f.u,language:f.lang,page:page});
+const r=await fetch('/api/library?'+p);if(my!==seq)return;const j=await r.json();
+if(!r.ok){$('#list').innerHTML='<p class="note">Could not load the library: '+esc(j.error)+'</p>';return}
+lib=lib.concat(j.voices);$('#list').innerHTML=(j.total?`<p class="note">${Number(j.total).toLocaleString()} voices match</p>`:'')+(lib.map(card).join('')||'<p class="note">No voices match.</p>');
+$('#more').hidden=!j.has_more}
+function redraw(){if(tab==='mine')drawMine();else{clearTimeout(timer);timer=setTimeout(()=>loadLib(true),350)}}
+['#q','#g','#age','#u','#lang'].forEach(s=>$(s).addEventListener('input',redraw));
+function setTab(t){tab=t;$('#t-mine').setAttribute('aria-selected',t==='mine');$('#t-lib').setAttribute('aria-selected',t==='lib');t==='mine'?drawMine():loadLib(true)}
+$('#t-mine').onclick=()=>setTab('mine');$('#t-lib').onclick=()=>setTab('lib');
+$('#more').onclick=()=>{page++;loadLib(false)};drawMine();
 document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
 if(b.dataset.p){if(audio)audio.pause();audio=new Audio(b.dataset.p);audio.play();return}
 if(b.dataset.id){if(audio)audio.pause();const r=await fetch('/choose',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({voice_id:b.dataset.id})});
@@ -204,19 +248,32 @@ $('#done').style.display='flex';$('#done').textContent=r.ok?'\\u2713 '+b.dataset
 </script></body></html>"""
 
 
-def serve_picker(voices, out_dir, timeout_s):
-    chosen = {}
-    page = PICKER.replace("__VOICES__", json.dumps(voices).replace("</", "<\\/")).encode()
+def serve_picker(voices, out_dir, timeout_s, key):
+    chosen, seen = {}, {v["voice_id"]: v for v in voices}  # only voices the page was shown can be chosen
+    page = (PICKER.replace("__MINE_COUNT__", str(len(voices)))
+            .replace("__VOICES__", json.dumps(voices).replace("</", "<\\/")).encode())
 
     class H(BaseHTTPRequestHandler):
         def log_message(self, *a):
             pass
 
-        def do_GET(self):
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
+        def reply(self, code, body, ctype="application/json"):
+            self.send_response(code)
+            self.send_header("Content-Type", ctype)
             self.end_headers()
-            self.wfile.write(page)
+            self.wfile.write(body)
+
+        def do_GET(self):
+            u = urllib.parse.urlparse(self.path)
+            if u.path == "/api/library":  # relay: the key stays here, never in the browser
+                q = {k: v[0] for k, v in urllib.parse.parse_qs(u.query).items()}
+                try:
+                    res = library_page(key, q, int(q.get("page", "0") or 0))
+                except SystemExit:  # call() reports errors by exiting; keep the picker alive
+                    return self.reply(502, json.dumps({"error": "ElevenLabs did not answer. Try again."}).encode())
+                seen.update({v["voice_id"]: v for v in res["voices"]})
+                return self.reply(200, json.dumps(res).encode())
+            self.reply(200, page, "text/html; charset=utf-8")
 
         def do_POST(self):
             n = int(self.headers.get("Content-Length", "0") or 0)
@@ -224,9 +281,8 @@ def serve_picker(voices, out_dir, timeout_s):
                 vid = json.loads(self.rfile.read(n) or b"{}").get("voice_id")
             except json.JSONDecodeError:
                 vid = None
-            match = next((v for v in voices if v["voice_id"] == vid), None) if self.path == "/choose" else None
-            self.send_response(200 if match else 400)
-            self.end_headers()
+            match = seen.get(vid) if self.path == "/choose" else None
+            self.reply(200 if match else 400, b"{}")
             if match:
                 chosen.update(match)
 
@@ -250,11 +306,12 @@ def serve_picker(voices, out_dir, timeout_s):
 
 def cmd_voices(a):
     d = ensure_dir(a.dir)
-    voices = [slim_voice(v) for v in fetch_voices(api_key())]
+    key = api_key()
+    voices = [slim_voice(v) for v in fetch_voices(key)]
     with open(os.path.join(d, "voices.json"), "w") as f:
         json.dump(voices, f, indent=1)
     if a.pick:
-        v = serve_picker(voices, d, a.timeout)
+        v = serve_picker(voices, d, a.timeout, key)
         print(json.dumps({"chosen": v, "saved": os.path.join(d, "voice.json")}, indent=1))
     else:
         print(json.dumps({"count": len(voices), "saved": os.path.join(d, "voices.json"),
@@ -371,7 +428,9 @@ def cmd_mix(a):
         n += 1
     voice = bool(voice_labels)
     if voice:
-        filters.append("".join(voice_labels) + f"amix=inputs={len(voice_labels)}:normalize=0,asplit=2[voice][vkey]")
+        # pad the voice to the full length: the ducking filter stops when its voice input ends, which would cut the music
+        filters.append("".join(voice_labels) + f"amix=inputs={len(voice_labels)}:normalize=0,"
+                       f"apad=whole_dur={vdur:.3f},asplit=2[voice][vkey]")
         mix_labels.append("[voice]")
     music = os.path.join(a.dir, "audio", "music.mp3")
     if os.path.exists(music) and not a.no_music:

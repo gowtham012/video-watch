@@ -4,3 +4,6 @@ vw-*/
 carry-forward/
 media/build/demo/out/
 media/build/demo/build/
+dist/
+extension/node_modules/
+extension/bin/
