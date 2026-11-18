@@ -1,7 +1,7 @@
 ---
 name: video
-description: Claude video watch. One /video command with subcommands. "watch" (the default) watches and understands a video the way a person would — YouTube or any URL, or a local file — by skimming scene-aware keyframes, reading a timestamped transcript, noticing audio cues (music, silence, loud hits), and re-watching moments up close. "sound" finds free, openly licensed sound effects, ambience or music on Openverse for moments in a video and lines each clip up with its exact moment, with credits. Use when the user says "watch this video", "/video", "/watch", "what happens in this video", "review/critique this launch video", "summarize this talk/tutorial", "what went wrong in this screen recording", "make a video like this", "remake this for my product", "add sound effects", "find a whoosh/SFX for this cut", "sound design this video", or pastes a video link and asks anything about it.
-argument-hint: "[watch|sound] <url-or-file> [question or what to do]"
+description: Claude video watch. One /video command with subcommands. "watch" (the default) watches and understands a video the way a person would — YouTube or any URL, or a local file — by skimming scene-aware keyframes, reading a timestamped transcript, noticing audio cues (music, silence, loud hits), and re-watching moments up close. "sound" finds free, openly licensed sound effects, ambience or music on Openverse for moments in a video and lines each clip up with its exact moment, with credits. "voice" makes an ElevenLabs voiceover in a voice the user picks from a browser page, plus instrumental music and sound effects, and mixes them into a video. Use when the user says "watch this video", "/video", "/watch", "what happens in this video", "review/critique this launch video", "summarize this talk/tutorial", "what went wrong in this screen recording", "make a video like this", "remake this for my product", "add sound effects", "find a whoosh/SFX for this cut", "add a voiceover", "narrate this", "choose a voice", "ElevenLabs", "add background music", "sound design this video", or pastes a video link and asks anything about it.
+argument-hint: "[watch|sound|voice] <url-or-file> [question or what to do]"
 ---
 
 # Claude video watch
@@ -13,8 +13,9 @@ One command, `/video`, with subcommands. Read the first word of the arguments:
 | `/video watch <url-or-file> [question]` | Watch and understand the video, then answer | This file, below |
 | `/video <url-or-file> [question]` | Same as `watch` (the default) | This file, below |
 | `/video sound <url-or-file-or-work-dir> [what it needs]` | Find Openverse sound effects for its moments and line them up on the timeline | Read `references/sound.md` |
+| `/video voice [<url-or-file>] [what it should say]` | ElevenLabs: pick a voice in the browser, make the voiceover, music and sound effects, mix into the video | Read `references/voice.md` |
 
-When the user asks in plain words instead of a command, pick the subcommand from what they want: understanding a video is `watch`; adding or choosing sound effects, ambience or music for a video is `sound`. If a request needs both ("watch this and add sound"), run `watch` first and reuse its work dir for `sound`.
+When the user asks in plain words instead of a command, pick the subcommand from what they want: understanding a video is `watch`; free sound effects or ambience from Openverse is `sound`; a voiceover, a chosen voice, ElevenLabs, or generated background music is `voice`. If a request needs both ("watch this and add sound"), run `watch` first and reuse its work dir for `sound`.
 
 Everything is permission-based: ask before installing a tool, downloading a model, or downloading any audio file.
 

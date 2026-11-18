@@ -21,6 +21,8 @@ A Claude Code plugin that turns any video (a YouTube link, any URL, or a local f
 
 ---
 
+> 👥 **Not a developer?** Follow the step-by-step **[team guide](docs/TEAM-GUIDE.md)**: setup in about 15 minutes, ElevenLabs voices, and copy-paste prompts.
+
 ## Install
 
 In Claude Code:

@@ -1,8 +1,8 @@
 {
   "name": "video-watch",
   "displayName": "Claude Video Watch",
-  "version": "0.4.0",
-  "description": "One /video command. /video watch understands videos (YouTube, any URL, or local files) like a person: scene-aware keyframes, timestamped transcript, audio cues, and zoom/re-watch. /video sound finds openly licensed Openverse sound effects and lines each one up with its moment, with credits.",
+  "version": "0.5.0",
+  "description": "One /video command. /video watch understands videos (YouTube, any URL, or local files) like a person: scene-aware keyframes, timestamped transcript, audio cues, and zoom/re-watch. /video sound finds openly licensed Openverse sound effects and lines each one up with its moment, with credits. /video voice adds an ElevenLabs voiceover in a voice you pick, plus music and sound effects.",
   "author": {
     "name": "Gowtham"
   },
